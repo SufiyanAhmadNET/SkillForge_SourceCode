@@ -49,12 +49,7 @@ namespace SkillForge.Services.Students
                         courseId = e.Course.Id,
                         Title = e.Course.Title,
                         ShortSummary = !string.IsNullOrWhiteSpace(e.Course.CourseDetails?.ShortSummary) ? e.Course.CourseDetails.ShortSummary : e.Course.CourseDetails?.Description,
-                        SubTitle = !string.IsNullOrWhiteSpace(e.Course.CourseDetails?.ShortSummary) ? e.Course.CourseDetails.ShortSummary : e.Course.CourseDetails?.Description,
-                        CategoryName = e.Course.courseCategory?.Name ?? "Uncategorized",
-                        Difficulty = e.Course.CourseDetails?.Difficulty.ToString() ?? "None",
-                        Total_Price = e.Course.CourseDetails?.Total_Price ?? 0,
-                        Actual_Price = e.Course.CourseDetails?.Actual_Price ?? 0,
-                        Discount_Percent = e.Course.CourseDetails?.Discount_Percent ?? 0,
+                 
                         Thumbnail_Url = e.Course.CourseDetails?.Thumbnail_Url,
                         ProgressPercentage = progressPercentage
                     };
@@ -78,7 +73,7 @@ namespace SkillForge.Services.Students
                     StudentId = studentId,
                     CourseId = courseId
                 });
-                _context.SaveChanges();
+            
                 return true;
             }
         }

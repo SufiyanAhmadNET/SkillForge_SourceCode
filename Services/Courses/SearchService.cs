@@ -226,23 +226,7 @@ namespace SkillForge.Services.Courses
             return result.ToList();
         }
 
-        // Map Course entity to CourseCardVM
-        private static CourseCardVM MapToCard(Course c, List<int> wishlistedIds)
-        {
-            return new CourseCardVM
-            {
-                courseId = c.Id,
-                Title = c.Title,
-                SubTitle = c.CourseDetails?.ShortSummary ?? c.CourseDetails?.Description,
-                ShortSummary = c.CourseDetails?.ShortSummary ?? c.CourseDetails?.Description,
-                CategoryName = c.courseCategory?.Name ?? "Uncategorized",
-                Difficulty = c.CourseDetails?.Difficulty.ToString() ?? "None",
-                Total_Price = c.CourseDetails?.Total_Price ?? 0,
-                Actual_Price = c.CourseDetails?.Actual_Price ?? 0,
-                Discount_Percent = c.CourseDetails?.Discount_Percent ?? 0,
-                Thumbnail_Url = c.CourseDetails?.Thumbnail_Url,
-                IsWishListed = wishlistedIds.Contains(c.Id)
-            };
+       
         }
     }
 }

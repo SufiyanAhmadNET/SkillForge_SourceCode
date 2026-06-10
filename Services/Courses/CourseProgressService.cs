@@ -51,10 +51,7 @@ namespace SkillForge.Services.Courses
 
         public bool IsCourseFullyCompleted(int studentId, int courseId)
         {
-            var totalLessons = _context.CourseModules
-                .Where(m => m.CourseId == courseId)
-                .SelectMany(m => m.Lessons)
-                .Count();
+         
 
             if (totalLessons == 0) return false;
 
@@ -133,16 +130,7 @@ namespace SkillForge.Services.Courses
                     progressPct = (int)((float)completedCount / totalLessons * 100);
                 }
 
-                results.Add(new CertificateVM
-                {
-                    CourseId = enrollment.CourseId,
-                    CourseTitle = enrollment.Course.Title,
-                    CertificateNumber = cert?.CertificateNumber ?? string.Empty,
-                    IssuedDate = cert?.IssuedDate,
-                    IsEarned = cert != null,
-                    ProgressPercentage = progressPct,
-                    ThumbnailUrl = enrollment.Course.CourseDetails?.Thumbnail_Url
-                });
+              
             }
 
             return results;

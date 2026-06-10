@@ -1,7 +1,7 @@
 using SkillForge.Data;
 using SkillForge.Models;
 using SkillForge.Interfaces;
-using SkillForge.Services.Auth.Models;
+
 
 namespace SkillForge.Services.Auth
 {
@@ -163,7 +163,4 @@ namespace SkillForge.Services.Auth
                 return new AuthResult { Success = true, status = AuthMessage.OtpVerified };
             }
 
-            return new AuthResult { Success = false, status = AuthMessage.LoginFailed };
-        }
-    }
-}
+           

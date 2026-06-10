@@ -1,0 +1,56 @@
+@{
+    Layout = "/Areas/User/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "Enrollment Successful";
+}
+
+<div class="container py-5 text-center" style="max-width:480px;">
+
+    <div class="success-card">
+
+        @* animated checkmark *@
+        <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+
+        <h2 class="fw-bold mt-3">You're Enrolled! 🎉</h2>
+        <p class="text-muted">Your payment was verified successfully.<br>Start learning right now.</p>
+
+        <hr style="border-color:#f0f0f0;">
+
+        <div class="d-flex gap-3 justify-content-center mt-3">
+            <a href="/User/Home/EnrolledCourses" class="btn-orange px-4 py-2 text-decoration-none rounded-3 fw-600">
+                Go to My Courses
+            </a>
+            <a href="/User/Home/Courses" class="btn btn-outline-secondary px-4 py-2 rounded-3">
+                Browse More
+            </a>
+        </div>
+
+        <p class="mt-4 small text-muted">
+            Enrollment ID: <strong>#@ViewBag.EnrollmentId</strong>
+        </p>
+    </div>
+</div>
+
+<style>
+    .success-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 40px 32px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.07);
+        border: 1px solid #eee;
+    }
+
+    /* big orange check icon */
+    .success-icon i {
+        font-size: 72px;
+        color: var(--orange);
+        animation: popIn .5s ease;
+    }
+
+    keyframes popIn {
+        0%   { transform: scale(0); opacity: 0; }
+        70%  { transform: scale(1.15); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>

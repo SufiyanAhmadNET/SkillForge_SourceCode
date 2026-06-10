@@ -1,0 +1,112 @@
+@model SkillForge.Models.SearchResultVM
+
+@{
+    Layout = "/Areas/User/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = $"Search results for \"{Model.Keyword}\"";
+}
+
+<main class="py-0">
+
+    @* ── search header (Refined, Centered & Themed) ── *@
+    <div class="course-hero pt-4 pb-4" style="margin-top: 0; background: linear-gradient(180deg, rgba(255, 102, 0, 0.04) 0%, rgba(255, 255, 255, 0) 100%); border-bottom: 1px solid rgba(0,0,0,0.03);">
+        <div class="hero-inner text-center">
+            <h3 class="fw-bold mb-2" style="font-size: 1.35rem; letter-spacing: -0.4px; color: #111827;">
+                Search Results for <span class="text-orange" style="background: rgba(255,102,0,0.07); padding: 1px 10px; border-radius: 8px;">"@Model.Keyword"</span>
+            </h3>
+            <p class="text-muted small mb-4">Search within your learning portal</p>
+            
+            @* centered search bar *@
+            <div class="d-flex justify-content-center">
+                <form asp-area="User" asp-controller="Home" asp-action="Search" method="get" class="d-flex gap-2" style="max-width: 480px; width: 100%;">
+                    <div class="position-relative flex-grow-1">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted small"></i>
+                        <input type="text" name="q" value="@Model.Keyword" class="form-control ps-5 py-2 border-1 shadow-sm" placeholder="Search for courses..." style="border-radius: 10px; font-size: 0.9rem;">
+                    </div>
+                    <button type="submit" class="btn-orange px-4 py-2 fw-bold" style="border-radius: 10px; font-size: 0.9rem;">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-5">
+
+        @if (!Model.ExactMatches.Any())
+        {
+            @* ── compact no results (Connected Layout) ── *@
+            <div class="category-section border-0" style="margin-top: 0; padding-top: 40px;">
+                <div class="course-section-inner text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-search text-muted" style="font-size: 2.5rem; opacity: 0.2;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">No results found</h4>
+                    <p class="text-muted small mb-4 mx-auto" style="max-width: 400px;">We couldn't find any courses matching "@Model.Keyword".</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="/User/Home/Courses" class="btn btn-outline-dark px-4 py-2 fw-semibold small" style="border-radius: 8px; font-size: 0.85rem;">
+                            <i class="bi bi-compass me-1"></i> Browse Courses
+                        </a>
+                        <a href="/User/Home/Dashboard" class="btn btn-light px-4 py-2 fw-semibold small" style="border-radius: 8px; font-size: 0.85rem;">
+                            Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            @* ── exact matches ── *@
+            <div class="category-section border-0 pb-0" style="margin-top: 0; padding-top: 24px;">
+                <div class="sec-head d-flex justify-content-between align-items-center">
+                    <div class="cat-left">
+                        <span class="cat-bar"></span>
+                        <h2 class="fw-bold mb-0" style="font-size: 1.1rem;">Courses Found (@Model.ExactMatches.Count)</h2>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <a href="/User/Home/Courses" class="text-decoration-none text-muted small fw-semibold">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Courses
+                        </a>
+                        <a href="/User/Home/Dashboard" class="text-decoration-none text-muted small fw-semibold d-none d-md-inline">
+                            Dashboard <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="course-section-inner mt-4">
+                    <div class="course-grid">
+                        @foreach (var course in Model.ExactMatches)
+                        {
+                            <div class="course-grid-item">
+                                <partial name="_CourseCardPartial" model="course" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* ── related courses ── *@
+            @if (Model.RelatedCourses.Any())
+            {
+                <div class="category-section border-0 pt-0" style="margin-top: 0; padding-top: 40px;">
+                    <div class="sec-head">
+                        <div class="cat-left">
+                            <span class="cat-bar"></span>
+                            <h2 class="fw-bold mb-0" style="font-size: 1.1rem;">Related Courses</h2>
+                        </div>
+                    </div>
+
+                    <div class="course-section-inner mt-4">
+                        <div class="course-grid">
+                            @foreach (var course in Model.RelatedCourses)
+                            {
+                                <div class="course-grid-item">
+                                    <partial name="_CourseCardPartial" model="course" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+
+</main>

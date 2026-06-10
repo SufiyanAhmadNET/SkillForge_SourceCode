@@ -1,0 +1,213 @@
+@using SkillForge.Areas.Admin.Models
+@using System.Globalization
+@model AdminDashboardVM
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<main class="p-3 flex-grow-1 admin-bg">
+
+    <!-- Dashboard Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="page-title-bar">
+            <h5 class="fw-bold mb-0">Admin Dashboard</h5>
+            <p class="text-muted mb-0" style="font-size:13px;">Monitor platform activity, users, instructors, courses, and business performance.</p>
+        </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="card border-0 stat-card h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-currency-rupee"></i>
+                        </div>
+                        <div class="stat-label">Gross Earnings</div>
+                    </div>
+                    <div class="stat-value">@Model.TotalRevenue.ToString("C0", CultureInfo.CreateSpecificCulture("en-IN"))</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="card border-0 stat-card h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div class="stat-label">Revenue This Month</div>
+                    </div>
+                    <div class="stat-value">@Model.RevenueThisMonth.ToString("C0", CultureInfo.CreateSpecificCulture("en-IN"))</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="card border-0 stat-card h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="stat-value">@Model.TotalStudents.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="card border-0 stat-card h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-person-video3"></i>
+                        </div>
+                        <div class="stat-label">Instructors</div>
+                    </div>
+                    <div class="stat-value">@Model.TotalInstructors</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="card border-0 stat-card h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="stat-icon" style="background:var(--orange-soft);color:var(--orange);">
+                            <i class="bi bi-journal-check"></i>
+                        </div>
+                        <div class="stat-label">Active Courses</div>
+                    </div>
+                    <div class="stat-value">@Model.ActiveCourses</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /STAT CARDS -->
+
+    <!-- PENDING APPROVALS preview -->
+    <div class="card border-0 admin-card mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-person-check me-2 text-success"></i>Instructor Approvals</h6>
+            <div class="d-flex align-items-center gap-2">
+                <span class="status-rejected fw-bold">@Model.RecentApplications.Count(a => a.Status == SkillForge.Services.Instructors.Models.MentorApplicationStatus.Pending) Pending</span>
+                <a asp-action="Pending_Approvals" class="small" style="color:var(--orange);">View All →</a>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm align-middle mb-0" style="font-size: 13px;">
+                    <thead class="table-light text-muted" style="font-size: 11px; letter-spacing: 0.03rem;">
+                        <tr>
+                            <th class="ps-3">Instructor</th>
+                            <th>Specialisation</th>
+                            <th>Applied</th>
+                            <th class="text-center pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var app in Model.RecentApplications.Where(a => a.Status == SkillForge.Services.Instructors.Models.MentorApplicationStatus.Pending).Take(3))
+                        {
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="tbl-avatar bg-success bg-opacity-10 text-success fw-bold" style="width: 26px; height: 26px; font-size: 10px;">
+                                            @app.InstructorName.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <span class="fw-medium">@app.InstructorName</span>
+                                    </div>
+                                </td>
+                                <td class="text-muted small">@app.Expertise</td>
+                                <td><span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2" style="font-size: 11px;">@app.AppliedDate.ToString("MMM dd")</span></td>
+                                <td class="text-center pe-3">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a asp-action="Pending_Approvals" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 11px;">Review</a>
+                                        <form asp-action="ApproveApplication" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="@app.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success py-0 px-2" style="font-size: 11px;">Approve</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.RecentApplications.Any(a => a.Status == SkillForge.Services.Instructors.Models.MentorApplicationStatus.Pending))
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-3 text-muted small">No pending applications</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- INSTRUCTOR LIST preview -->
+    <div class="row g-3">
+        <div class="col-lg-12">
+            <div class="card border-0 admin-card h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                    <h6 class="mb-0 fw-bold small"><i class="bi bi-person-video3 me-2 text-success"></i>Instructor Overview</h6>
+                    <a asp-action="Instructors" class="small text-decoration-none" style="color:var(--orange); font-size: 12px;">View All →</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm align-middle mb-0" style="font-size: 13px;">
+                            <thead class="table-light text-muted" style="font-size: 11px; letter-spacing: 0.03rem;">
+                                <tr>
+                                    <th class="ps-3">Instructor</th>
+                                    <th>Courses</th>
+                                    <th>Students</th>
+                                    <th>Status</th>
+                                    <th class="text-center pe-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ins in Model.RecentInstructors)
+                                {
+                                    <tr>
+                                        <td class="ps-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="tbl-avatar fw-bold" style="background:var(--orange-soft);color:var(--orange); width: 26px; height: 26px; font-size: 10px;">@ins.Name.Substring(0, 1).ToUpper()</div>
+                                                <span class="fw-medium">@ins.Name</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-muted small">@ins.TotalCourses</td>
+                                        <td class="text-muted small">@ins.TotalStudents</td>
+                                        <td>
+                                            @if (ins.Status == "Approved")
+                                            {
+                                                <span class="status-approved" style="font-size: 13px;">Approved</span>
+                                            }
+                                            else if (ins.Status == "Pending")
+                                            {
+                                                <span class="status-pending" style="font-size: 13px;">Pending</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-rejected" style="font-size: 13px;">@ins.Status</span>
+                                            }
+                                        </td>
+                                        <td class="text-center pe-3">
+                                            <a asp-action="ViewInstructorProfile" asp-route-id="@ins.Id" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size: 11px; color: var(--orange);">Profile</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>

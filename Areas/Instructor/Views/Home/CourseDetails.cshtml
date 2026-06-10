@@ -1,0 +1,374 @@
+@model SkillForge.Models.CourseDetailsVM
+
+@{
+    ViewData["Title"] = "Course Details";
+    Layout = "~/Areas/Instructor/Views/Shared/InstructorLayout.cshtml";
+}
+<main class="p-4 flex-grow-1 inst-bg">
+    @* deleted course banner *@
+    @if (Model.Status == "Deleted")
+    {
+        <div class="alert alert-secondary border-0 shadow-sm d-flex align-items-center gap-3 mb-4 rounded-4 p-3">
+            <div class="bg-secondary bg-opacity-10 p-2 rounded-circle">
+                <i class="bi bi-info-circle-fill text-secondary fs-4"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-0">Archived Record</h6>
+                <p class="small mb-0 text-muted">This course was deleted. You are viewing historical student and earnings data in read-only mode.</p>
+            </div>
+        </div>
+    }
+
+    @* top bar *@
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <div class="page-title-bar">
+            <h5 class="fw-bold mb-0">Course Management</h5>
+            <p class="text-muted mb-0" style="font-size:13px;">Manage course content, students, and summary.</p>
+        </div>
+        @* navigation and course actions *@
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="MyCourses" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                My Courses
+            </a>
+            @if (Model.Status != "Deleted")
+            {
+                <a asp-action="EditCourse" asp-route-id="@Model.CourseId" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    Edit
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="confirmDeleteCourse(@Model.CourseId)">
+                    Delete
+                </button>
+                @* preview as student with flag *@
+                <a asp-action="CourseDetails" asp-area="User" asp-controller="Home" asp-route-id="@Model.CourseId" asp-route-preview="true" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    Preview
+                </a>
+                @* submit for review *@
+                <form asp-action="SubmitForReview" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.CourseId" />
+                    <button type="submit" class="btn btn-sm fw-semibold px-4 rounded-pill shadow-sm"
+                            style="background:var(--purple);color:#fff;border:none;">
+                        Submit for Review
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="row g-3">
+        @* LEFT: course info card *@
+        <div class="col-lg-4">
+            <div class="card border-0 inst-card mb-3">
+                <div class="card-body">
+                    <!-- Course thumbnail -->
+                    <img src="@(string.IsNullOrEmpty(Model.ThumbnailUrl) ? "/img/course-placeholder.jpg" : Model.ThumbnailUrl)" 
+                         class="w-100 rounded-3 mb-3" style="height:150px; object-fit:cover;">
+
+                    <h6 class="fw-bold mb-1">@Model.Title</h6>
+
+                    <!-- Status badge -->
+                    @{
+                        var badgeClass = Model.Status == "Approved" || Model.Status == "Published" ? "bg-success" : 
+                                         Model.Status == "PendingReview" ? "bg-warning text-dark" : 
+                                         Model.Status == "Rejected" ? "bg-danger" : "bg-secondary";
+                    }
+                    <span class="badge @badgeClass mb-3">
+                        @Model.Status
+                    </span>
+
+                    @if (Model.Status == "Rejected" && !string.IsNullOrEmpty(Model.RejectionReason))
+                    {
+                        <div class="alert alert-danger p-2 mb-3" style="font-size:12px;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                            <strong>Admin Feedback:</strong> @Model.RejectionReason
+                        </div>
+                    }
+
+                    <!-- Course metadata -->
+                    <div class="d-flex flex-column gap-2" style="font-size:13px;">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Category</span>
+                            <span class="fw-semibold">@(Model.CategoryName ?? "Uncategorized")</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Level</span>
+                            <span class="fw-semibold">@(Model.Difficulty ?? "None")</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Duration</span>
+                            <span class="fw-semibold">@Model.Duration weeks</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Actual Price</span>
+                            <span class="fw-semibold text-decoration-line-through text-muted">₹@Model.ActualPrice</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Discount</span>
+                            <span class="fw-semibold text-success">@Model.DiscountPercent% OFF</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Selling Price</span>
+                            <span class="fw-bold fs-5" style="color:var(--purple);">₹@Model.TotalPrice</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Mini stats — summary of earnings *@
+            <div class="row g-2">
+                <div class="col-6">
+                    <div class="card border-0 inst-card text-center py-3">
+                        <div class="fw-bold fs-5" style="color:var(--purple);">@Model.EnrolledStudents.Count</div>
+                        <small class="text-muted">Students</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card border-0 inst-card text-center py-3">
+                        <div class="fw-bold fs-5" style="color:var(--purple);">4.8 ★</div>
+                        <small class="text-muted">Rating</small>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card border-0 inst-card text-center py-3">
+                        <div class="fw-bold fs-5 text-success">₹@(Model.CourseEarnings >= 1000 ? (Model.CourseEarnings / 1000).ToString("0.##") + "K" : Model.CourseEarnings.ToString("N0"))</div>
+                        <small class="text-muted">Total Earnings</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* RIGHT: tabs *@
+        <div class="col-lg-8">
+            <div class="card border-0 inst-card">
+                @* tab nav *@
+                <div class="card-header bg-white border-bottom">
+                    <ul class="nav nav-tabs card-header-tabs" id="courseTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#tabOverview">
+                                Overview
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tabContent">
+                                Content
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tabStudents">
+                                Students
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tabSummary">
+                                Summary
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content card-body">
+                    @* OVERVIEW tab *@
+                    <div class="tab-pane fade show active" id="tabOverview">
+                        <h6 class="fw-semibold mb-2">About this Course</h6>
+                        <p class="text-muted" style="font-size:14px;">@Model.Desciption</p>
+                        <h6 class="fw-semibold mt-3 mb-2">What Students Will Learn</h6>
+                        <ul class="text-muted ps-3" style="font-size:14px;">
+                            @if (Model.outcomes != null)
+                            {
+                                @foreach (var outcome in Model.outcomes)
+                                {
+                                    <li class="mb-1">@outcome.Outcome</li>
+                                }
+                            }
+                        </ul>
+                        <h6 class="fw-semibold mt-3 mb-2">Intro Video</h6>
+                        @if (!string.IsNullOrEmpty(Model.VideoUrl))
+                        {
+                            <a href="@Model.VideoUrl" target="_blank"
+                               class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                <i class="bi bi-play-circle me-1 text-danger"></i>Watch Intro Video
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">No video uploaded.</span>
+                        }
+                    </div>
+
+                    @* CONTENT tab *@
+                    <div class="tab-pane fade" id="tabContent">
+                        <form asp-action="UpdateSyllabus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.CourseId" />
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h6 class="fw-bold mb-0">Course Content / Syllabus</h6>
+                                    <p class="text-muted small mb-0">Manage modules and lessons in one place</p>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    @if (Model.Status != "Deleted")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-purple rounded-pill px-3" onclick="addSyllabusModule(0)">
+                                            Add Module
+                                        </button>
+                                        <button type="submit" class="btn btn-sm btn-purple rounded-pill px-3 shadow-sm">
+                                            Save Content
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-muted border px-3 rounded-pill d-flex align-items-center">Content Locked</span>
+                                    }
+                                </div>
+                            </div>
+
+                            @{
+                                var syllabusVM = Model.modules?.Select(m => new SkillForge.Models.ModuleVM
+                                {
+                                    ModuleName = m.ModuleName,
+                                    Lessons = m.Lessons?.Select(l => new SkillForge.Models.LessonVM
+                                    {
+                                        Title = l.Title,
+                                        VideoUrl = l.VideoUrl
+                                    }).ToList() ?? new List<SkillForge.Models.LessonVM>()
+                                }).ToList() ?? new List<SkillForge.Models.ModuleVM>();
+                            }
+
+                            @await Html.PartialAsync("_SyllabusEditor", syllabusVM)
+
+                            @if (Model.Status != "Deleted")
+                            {
+                                <div class="text-end mt-3">
+                                    <button type="submit" class="btn btn-purple rounded-pill px-4 shadow-sm fw-semibold">
+                                        Save All Changes
+                                    </button>
+                                </div>
+                            }
+                        </form>
+                    </div>
+
+                    @* STUDENTS tab *@
+                    <div class="tab-pane fade" id="tabStudents">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-semibold mb-0 small">Enrolled Students (@Model.EnrolledStudents.Count)</h6>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-0 px-2 rounded-pill" type="button" data-bs-toggle="dropdown" style="font-size: 11px;">
+                                    Export List
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="font-size: 12px;">
+                                    <li><a class="dropdown-item" asp-action="DownloadStudentRoster" asp-route-id="@Model.CourseId"><i class="bi bi-file-pdf me-2 text-danger"></i>Export as PDF</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)"><i class="bi bi-file-word me-2 text-primary"></i>Export as DOCX</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm align-middle mb-0" style="font-size: 14px;">
+                                <thead class="table-light text-muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.03rem;">
+                                    <tr>
+                                        <th class="ps-3">#</th>
+                                        <th>Student</th>
+                                        <th>Email</th>
+                                        <th class="pe-3">Enrollment Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int studentCount = 1; }
+                                    @foreach (var student in Model.EnrolledStudents)
+                                    {
+                                        <tr>
+                                            <td class="ps-3 text-muted">@studentCount</td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                                         style="width:26px;height:26px;font-size:11px;background:var(--purple-soft);color:var(--purple);">
+                                                        @student.Initial
+                                                    </div>
+                                                    <span class="fw-medium text-dark">@student.Name</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-muted small">@student.Email</td>
+                                            <td class="pe-3 text-muted small">@student.EnrolledAt</td>
+                                        </tr>
+                                        studentCount++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        @if (!Model.EnrolledStudents.Any())
+                        {
+                            <div class="text-center py-5 border-top">
+                                <p class="text-muted mb-0 small">No students enrolled in this course yet.</p>
+                            </div>
+                        }
+                    </div>
+
+                    @* SUMMARY tab *@
+                    <div class="tab-pane fade" id="tabSummary">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <div class="p-3 border rounded-3 bg-light text-center">
+                                    <div class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Total Students</div>
+                                    <div class="fs-5 fw-bold text-dark">@Model.EnrolledStudents.Count</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 border rounded-3 bg-light text-center">
+                                    <div class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Total Earned</div>
+                                    <div class="fs-5 fw-bold text-success">₹@Model.CourseEarnings.ToString("N0")</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 border rounded-3 bg-light text-center">
+                                    <div class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Gross Revenue</div>
+                                    <div class="fs-5 fw-bold text-dark">₹@Model.CourseEarnings.ToString("N0")</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 border rounded-3 bg-light text-center">
+                                    <div class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Course Status</div>
+                                    <div class="fs-5 fw-bold text-purple">@Model.Status</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 bg-light rounded-3 p-3">
+                            <h6 class="fw-bold mb-3 small"><i class="bi bi-file-earmark-bar-graph me-2 text-purple"></i>Download Reports</h6>
+                            <div class="d-flex gap-2">
+                                <a asp-action="DownloadCourseFinancialReport" asp-route-id="@Model.CourseId" class="btn btn-sm btn-white border shadow-sm px-3 fw-medium rounded-pill" style="font-size: 12px;">
+                                    <i class="bi bi-file-pdf me-2 text-danger"></i>Course Summary PDF
+                                </a>
+                                <button type="button" class="btn btn-sm btn-white border shadow-sm px-3 fw-medium rounded-pill" style="font-size: 12px;">
+                                    <i class="bi bi-file-word me-2 text-primary"></i>Enrollment Data DOCX
+                                </button>
+                            </div>
+                            <p class="text-muted small mt-2 mb-0">Compact course summary and enrollment breakdown reports.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .btn-purple { background: var(--purple); color: #fff; border: none; }
+    .btn-purple:hover { background: var(--purple-dark); color: #fff; }
+    .btn-outline-purple { color: var(--purple); border-color: var(--purple); }
+    .btn-outline-purple:hover { background: var(--purple); color: #fff; }
+    .btn-white { background: #fff; color: #333; }
+</style>
+
+<script>
+    function confirmDeleteCourse(courseId) {
+        SkillForge.confirm({
+            message: "Are you sure you want to delete this course? It will be moved to your deleted section.",
+            confirmText: "Delete Course",
+            onConfirm: function() {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/Instructor/Home/DeleteCourse?id=' + courseId;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>

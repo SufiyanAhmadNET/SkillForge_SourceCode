@@ -1,0 +1,362 @@
+@model CourseVM
+
+@{
+    ViewData["Title"] = "Add Course";
+    Layout = "~/Areas/Instructor/Views/Shared/InstructorLayout.cshtml";
+}
+
+<main class="p-4 flex-grow-1 inst-bg">
+    @* page header *@
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">Create New Course</h4>
+            <div class="d-flex align-items-center gap-2">
+                <p class="text-muted small mb-0">Fill in the details to publish your course</p>
+                <div id="saveStatus" class="small text-muted" style="display:none;">
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>Saving...
+                </div>
+                <div id="savedStatus" class="small text-success" style="display:none;">
+                    <i class="bi bi-check-all me-1"></i>Draft Saved
+                </div>
+            </div>
+        </div>
+        <a asp-action="MyCourses" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            Back to Courses
+        </a>
+    </div>
+
+    @* tabs navigation *@
+    <ul class="nav nav-pills course-stepper mb-4" id="courseTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="basic-tab" data-bs-toggle="pill" data-bs-target="#basic-info">
+                <i class="bi bi-info-circle"></i> 1. Basic Info
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="content-tab" data-bs-toggle="pill" data-bs-target="#course-content">
+                <i class="bi bi-journal-text"></i> 2. Course Content
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="additional-tab" data-bs-toggle="pill" data-bs-target="#additional-info">
+                <i class="bi bi-check-circle"></i> 3. Final Details
+            </button>
+        </li>
+    </ul>
+
+    @* course form *@
+    <form asp-area="Instructor" asp-controller="Home" asp-action="AddCourse" method="post" enctype="multipart/form-data" id="addCourseForm" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        
+        <div class="tab-content" id="courseTabContent">
+            @* 1. Basic Info Tab *@
+            <div class="tab-pane fade show active" id="basic-info">
+                <div class="row g-3">
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+                            <h6 class="fw-bold mb-3">Basic Information</h6>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Course Title *</label>
+                                <input type="text" class="form-control" asp-for="Title" placeholder="e.g. Complete Web Development 2026" data-required="Course Title">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Description *</label>
+                                <textarea class="form-control" asp-for="Description" rows="4" placeholder="Tell students what this course is about..." data-required="Course Description"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Short Summary (for course card) *</label>
+                                <textarea class="form-control" asp-for="ShortSummary" rows="2" maxlength="120" placeholder="A brief 1-2 line catchphrase or summary..." data-required="Short Summary"></textarea>
+                                <div class="form-text small">Maximum 120 characters. This appears on the course preview card.</div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Category *</label>
+                                    <select class="form-select" asp-for="Category_Id" data-required="Course Category">
+                                        <option value="">Select category</option>
+                                        <option value="1">Software Development</option>
+                                        <option value="2">Data Science</option>
+                                        <option value="3">AI / Machine Learning</option>
+                                        <option value="4">DevOps & Cloud</option>
+                                        <option value="5">Cybersecurity</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Difficulty *</label>
+                                    <select class="form-select" asp-for="Difficulty" data-required="Difficulty Level">
+                                        <option value="">Select level</option>
+                                        <option value="Beginner">Beginner</option>
+                                        <option value="Intermediate">Intermediate</option>
+                                        <option value="Advanced">Advanced</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold">Duration (weeks)</label>
+                                    <input type="number" class="form-control" asp-for="Duration_Weeks" placeholder="12" min="1" data-required="Duration">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold">Original Price (₹)</label>
+                                    <input type="number" class="form-control" asp-for="Actual_Price" id="originalPrice" placeholder="999" min="0">
+                                    <small class="text-muted d-block mt-1" style="font-size:11px;">Set Price 0 for Free Course</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold">Discount (%)</label>
+                                    <input type="number" class="form-control" asp-for="Discount_Percent" id="discountPct" placeholder="20" min="0" max="100">
+                                </div>
+                            </div>
+
+                            @* Live price preview - Updated by Discount.js *@
+                            <div class="mt-3 p-3 rounded-3 border" id="pricePreview" style="display:none; background:#f9f8ff;">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="text-center">
+                                        <div class="text-muted" style="font-size:11px; letter-spacing:.5px;">ORIGINAL</div>
+                                        <div class="fw-semibold" id="displayOriginal">₹0</div>
+                                    </div>
+                                    <i class="bi bi-dash text-muted"></i>
+                                    <div class="text-center">
+                                        <div class="text-muted" style="font-size:11px; letter-spacing:.5px;">DISCOUNT</div>
+                                        <div class="fw-semibold" id="displayDiscount" style="color:var(--purple);">₹0</div>
+                                    </div>
+                                    <i class="bi bi-equals text-muted"></i>
+                                    <div class="text-center">
+                                        <div class="text-muted" style="font-size:11px; letter-spacing:.5px;">FINAL</div>
+                                        <div class="fw-bold fs-5" id="displayFinal" style="color:var(--purple);">₹0</div>
+                                    </div>
+                                    <span class="badge bg-success rounded-pill px-3" id="displayBadge"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm rounded-4 p-4">
+                            <h6 class="fw-bold mb-3">Intro Video</h6>
+                            @{
+                                var vType = ViewBag.VideoType as string ?? "youtube";
+                                var ytUrl = ViewBag.YouTubeUrl as string ?? "";
+                            }
+                            <div class="d-flex gap-2 mb-3">
+                                <input type="radio" class="btn-check" name="videoType" id="ytOption" value="youtube" @(vType == "youtube" ? "checked" : "")>
+                                <label class="btn btn-outline-secondary btn-sm px-3" for="ytOption"><i class="bi bi-youtube me-1"></i>YouTube</label>
+                                <input type="radio" class="btn-check" name="videoType" id="uploadOption" value="upload" @(vType == "upload" ? "checked" : "")>
+                                <label class="btn btn-outline-secondary btn-sm px-3" for="uploadOption"><i class="bi bi-upload me-1"></i>Upload</label>
+                            </div>
+                            <div id="ytPanel" style="@(vType == "youtube" ? "" : "display:none;")">
+                                <input type="url" class="form-control" name="YouTubeUrl" value="@ytUrl" placeholder="https://youtube.com/watch?v=...">
+                            </div>
+                            <div id="uploadPanel" style="@(vType == "upload" ? "" : "display:none;")">
+                                <input type="file" class="form-control" name="Video_File" accept="video/*">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+                            <h6 class="fw-bold mb-3">Thumbnail</h6>
+                            <div id="thumbPreview" class="rounded-4 mb-3 d-flex align-items-center justify-content-center border" style="height:160px; background:#f8f9fa; cursor:pointer; overflow:hidden;" onclick="document.getElementById('thumbInput').click()">
+                                @if (!string.IsNullOrEmpty(Model.Temp_Thumbnail_Url))
+                                {
+                                    <img src="@Model.Temp_Thumbnail_Url" class="rounded-4" style="width:100%;height:100%;object-fit:cover;">
+                                }
+                                else
+                                {
+                                    <div class="text-center text-muted">
+                                        <i class="bi bi-image fs-1 opacity-25"></i>
+                                        <p class="small mb-0">Click to upload</p>
+                                    </div>
+                                }
+                            </div>
+                            <input type="file" id="thumbInput" name="thumbnail_url" class="form-control d-none" accept="image/*">
+                            <input type="hidden" asp-for="Temp_Thumbnail_Url" />
+                            <small class="text-muted text-center d-block">16:9 Landscape ratio recommended</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-end">
+                    <button type="button" class="btn btn-purple px-4 fw-semibold rounded-pill shadow-sm" onclick="validateAndNext('basic-info', 'content-tab')">Next: Build Syllabus</button>
+                </div>
+            </div>
+
+            @* 2. Course Content Tab *@
+            <div class="tab-pane fade" id="course-content">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h6 class="fw-bold mb-0">Course Content / Syllabus</h6>
+                            <p class="text-muted small mb-0">Organize your course into modules and lessons</p>
+                        </div>
+                    </div>
+
+                    @await Html.PartialAsync("_SyllabusEditor", Model?.Syllabus ?? new List<ModuleVM>())
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-light px-4 fw-semibold rounded-pill" onclick="document.getElementById('basic-tab').click()">Back</button>
+                    <button type="button" class="btn btn-purple px-4 fw-semibold rounded-pill shadow-sm" onclick="validateAndNext('course-content', 'additional-tab')">Next: Outcomes & Publish</button>
+                </div>
+            </div>
+
+            @* 3. Additional Info Tab *@
+            <div class="tab-pane fade" id="additional-info">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h6 class="fw-bold mb-3">Learning Outcomes</h6>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">What students will learn *</label>
+                        <textarea class="form-control" name="OutcomesRaw" rows="6" placeholder="Enter one outcome per line...">@ViewBag.OutcomesRaw</textarea>
+                        <small class="text-muted">Students see this as a bulleted list on the course page</small>
+                    </div>
+                </div>
+
+                @* final actions *@
+                <div class="d-flex gap-2 justify-content-between align-items-center mt-3">
+                    <button type="button" class="btn btn-light px-4 fw-semibold rounded-pill" onclick="document.getElementById('content-tab').click()">Back</button>
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="submitAction" value="draft" class="btn btn-outline-secondary px-4 fw-semibold rounded-pill">
+                            <i class="bi bi-floppy me-1"></i>Save as Draft
+                        </button>
+                        <button type="submit" name="submitAction" value="submit" class="btn btn-purple fw-semibold px-4 rounded-pill shadow-sm">
+                            <i class="bi bi-send me-1"></i>Submit for Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</main>
+
+@section Scripts {
+    <script src="~/js/Discount.js" asp-append-version="true"></script>
+    <script>
+        function validateAndNext(currentTabId, nextTabTriggerId) {
+            const currentTab = document.getElementById(currentTabId);
+            const inputs = currentTab.querySelectorAll('input[data-required], textarea[data-required], select[data-required]');
+            let missing = [];
+            
+            inputs.forEach(input => {
+                if (!input.value || input.value.trim() === "") {
+                    missing.push(input.getAttribute('data-required'));
+                }
+            });
+            
+            if (missing.length > 0) {
+                if (typeof showAlert === 'function') {
+                    showAlert("Warning: " + missing.join(", ") + " is empty.", "warning");
+                }
+            }
+            
+            const nextTabTrigger = document.getElementById(nextTabTriggerId);
+            if (nextTabTrigger) nextTabTrigger.click();
+        }
+
+        // AutoSave logic
+        let autoSaveTimeout;
+        const form = document.getElementById('addCourseForm');
+        
+        function triggerAutoSave() {
+            clearTimeout(autoSaveTimeout);
+            
+            document.getElementById('saveStatus').style.display = 'inline-block';
+            document.getElementById('savedStatus').style.display = 'none';
+
+            const formData = new FormData(form);
+            
+            fetch('@Url.Action("AutoSave", "Home")', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('saveStatus').style.display = 'none';
+                if (data.success) {
+                    document.getElementById('savedStatus').style.display = 'inline-block';
+                    setTimeout(() => {
+                        document.getElementById('savedStatus').style.display = 'none';
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                document.getElementById('saveStatus').style.display = 'none';
+                console.error('AutoSave failed:', error);
+            });
+        }
+
+        // Save on tab change (Step Transitions)
+        document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', () => {
+                triggerAutoSave();
+            });
+        });
+
+        // video toggle
+        document.querySelectorAll('input[name="videoType"]').forEach(r => {
+            r.addEventListener('change', () => {
+                document.getElementById('ytPanel').style.display     = r.value === 'youtube' ? '' : 'none';
+                document.getElementById('uploadPanel').style.display = r.value === 'upload'  ? '' : 'none';
+            });
+        });
+
+        // thumb preview
+        document.getElementById('thumbInput').addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            document.getElementById('thumbPreview').innerHTML = `<img src="${url}" class="rounded-4" style="width:100%;height:100%;object-fit:cover;">`;
+        });
+    </script>
+    <style>
+        /* modernized stepper */
+        .course-stepper {
+            background: #f8f9fa;
+            padding: 6px;
+            border-radius: 12px;
+            display: flex;
+            gap: 4px;
+            border: 1px solid #eee;
+        }
+
+        .course-stepper .nav-item {
+            flex: 1;
+        }
+
+        .course-stepper .nav-link {
+            width: 100%;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #666;
+            background: transparent;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .course-stepper .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        .course-stepper .nav-link.active {
+            background: #fff !important;
+            color: var(--purple) !important;
+            border-color: #eee;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* general refinements */
+        .btn-purple { background: var(--purple); color: #fff; border: none; }
+        .btn-purple:hover { background: var(--purple-dark); color: #fff; }
+        .inst-bg { background-color: #fbfbfb; }
+        .card { border: 1px solid #f0f0f0 !important; }
+        .form-label { color: #444; }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 0.25rem rgba(124, 58, 237, 0.1);
+        }
+    </style>
+}

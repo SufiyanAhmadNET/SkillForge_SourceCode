@@ -1,0 +1,399 @@
+@model SkillForge.Areas.User.Models.DashboardVM
+
+@{
+    Layout = "/Areas/User/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "My Profile";
+}
+
+<partial name="_PageTitleBanner" />
+
+<div class="row g-4">
+
+    <!-- LEFT SIDE: Navigation -->
+    <div class="col-lg-3">
+        <div class="section-card text-center p-3 shadow-sm border-premium-orange" style="background:#fff; border-radius:12px;">
+
+            <!-- Profile Photo -->
+            <div class="position-relative d-inline-block">
+                <img src="@((Model?.PhotoPath ?? "/images/DefaultProfilePhoto.jfif") + "?t=" + DateTime.Now.Ticks)"
+                     id="avatarPreview"
+                     class="rounded-circle mb-2"
+                     style="width:100px;height:100px;object-fit:cover; border: 3px solid #f8f9fa;">
+
+                <label for="PhotoFile" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm" style="cursor:pointer; transform: translate(-5px, -10px);">
+                    <i class="bi bi-camera-fill text-muted" style="font-size: 14px;"></i>
+                </label>
+            </div>
+
+            <input type="file" id="PhotoFile" name="PhotoFile" accept="image/*" class="d-none" onchange="previewAvatar(this)" form="profileForm">
+
+            @* Photo Save Button *@
+            <div id="photoSaveContainer" style="display:none;" class="mt-2">
+                <button type="submit" class="btn btn-sm btn-orange-save w-100 py-2 shadow-sm rounded-pill" style="font-size:12px; font-weight:600;" form="profileForm">
+                    <i class="bi bi-check-circle me-1"></i>Save Photo
+                </button>
+            </div>
+
+            <h6 class="fw-bold mt-2 mb-0">@(string.IsNullOrEmpty(Model?.FirstName) ? "Guest" : Model.FirstName) @(Model?.LastName ?? "User")</h6>
+            <p class="text-muted small mb-2">@Model?.Email</p>
+
+            <hr class="my-3 opacity-50">
+
+            <!-- Sidebar Navigation -->
+            <div class="d-flex flex-column gap-2 mt-2">
+                <button type="button" data-section="basicSection" class="btn btn-sm w-100 py-2 btn-section btn-sidebar-nav active">
+                    <i class="bi bi-person me-2"></i>Personal Info
+                </button>
+
+                <button type="button" data-section="professionalSection" class="btn btn-sm w-100 py-2 btn-section btn-sidebar-nav">
+                    <i class="bi bi-briefcase me-2"></i>Professional
+                </button>
+
+                <button type="button" data-section="socialSection" class="btn btn-sm w-100 py-2 btn-section btn-sidebar-nav">
+                    <i class="bi bi-link-45deg me-2"></i>Social Links
+                </button>
+
+                <button type="button" data-section="projectSection" class="btn btn-sm w-100 py-2 btn-section btn-sidebar-nav">
+                    <i class="bi bi-folder me-2"></i>My Projects
+                </button>
+
+                <button type="button" data-section="passwordSection" class="btn btn-sm w-100 py-2 btn-section btn-sidebar-nav">
+                    <i class="bi bi-lock me-2"></i>Security
+                </button>
+            </div>
+
+            <!-- QUICK STATS -->
+            <div class="mt-4 pt-3 border-top">
+                <div class="d-flex gap-2">
+                    <div class="stat-box w-50">
+                        <div class="stat-number">@Model?.EnrolledCount</div>
+                        <div class="stat-label">Enrolled</div>
+                    </div>
+                    <div class="stat-box w-50">
+                        <div class="stat-number">@Model?.CertificateCount</div>
+                        <div class="stat-label">Certificates</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- RIGHT SIDE -->
+    <div class="col-lg-9">
+        
+        <form asp-area="User" asp-controller="Home" asp-action="Profile" method="post" enctype="multipart/form-data" id="profileForm">
+            @Html.AntiForgeryToken()
+            
+            <!-- PERSONAL INFORMATION -->
+            <div id="basicSection" class="profile-content-section active">
+                <div class="section-card shadow-sm p-4 border-premium-orange" style="background:#fff; border-radius:12px;">
+                    <div class="form-section-title">Personal Information</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium">First Name</label>
+                            <input type="text" class="form-control" value="@Model?.FirstName" name="FirstName" placeholder="Enter first name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium">Last Name</label>
+                            <input type="text" class="form-control" value="@Model?.LastName" name="LastName" placeholder="Enter last name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium">Email Address</label>
+                            <input type="email" class="form-control bg-light" value="@Model?.Email" name="Email" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium">Phone Number</label>
+                            <input type="tel" class="form-control" value="@Model?.Mobile" name="Mobile" placeholder="Enter phone number">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium">City</label>
+                            <input type="text" class="form-control" value="@Model?.City" name="City" placeholder="Enter city">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-medium">Interests</label>
+                            <input type="text" class="form-control" value="@Model?.Interests" name="Interests" placeholder="e.g. c#, web development, sql, ui ux">
+                            <div class="form-text small opacity-75">Add up to 5 interests, separated by commas.</div>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-orange-save px-5 py-2 shadow-sm">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROFESSIONAL DETAILS -->
+            <div id="professionalSection" class="profile-content-section">
+                <div class="section-card shadow-sm p-4 border-premium-orange" style="background:#fff; border-radius:12px;">
+                    <div class="form-section-title">Professional Details</div>
+                    <div class="text-center py-5">
+                        <i class="bi bi-briefcase text-muted opacity-25" style="font-size: 3rem;"></i>
+                        <p class="mt-3 text-muted">Professional portfolio features are coming soon!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SOCIAL LINKS -->
+            <div id="socialSection" class="profile-content-section">
+                <div class="section-card shadow-sm p-4 border-premium-orange" style="background:#fff; border-radius:12px;">
+                    <div class="form-section-title">Social Connections</div>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label small fw-medium">LinkedIn URL</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-linkedin text-primary"></i></span>
+                                <input type="url" class="form-control border-start-0" placeholder="https://linkedin.com/in/username">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-medium">GitHub URL</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-github text-dark"></i></span>
+                                <input type="url" class="form-control border-start-0" placeholder="https://github.com/username">
+                            </div>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-orange-save px-5 py-2 shadow-sm" onclick="showAlert('Social links saved!', 'success')">
+                                <i class="bi bi-save me-2"></i>Update Socials
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROJECTS -->
+            <div id="projectSection" class="profile-content-section">
+                <div class="section-card shadow-sm p-4 border-premium-orange" style="background:#fff; border-radius:12px;">
+                    <div class="form-section-title">My Projects</div>
+                    <div class="text-center py-5">
+                        <i class="bi bi-folder text-muted opacity-25" style="font-size: 3rem;"></i>
+                        <p class="mt-3 text-muted">Showcase your learning projects here soon.</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- SECURITY / PASSWORD  -->
+        <div id="passwordSection" class="profile-content-section">
+            
+            <!-- OPTIONS VIEW -->
+            <div id="securityOptionsView">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="section-card shadow-sm p-4 text-center security-option-card border-premium-orange" 
+                             style="background:#fff; border-radius:12px; cursor:pointer; height: 100%; transition: all 0.3s;" 
+                             onclick="toggleSecurityView('change')">
+                            <i class="bi bi-shield-lock text-orange mb-2 d-block" style="font-size: 2rem;"></i>
+                            <h6 class="fw-bold mb-2">Change Password</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Update current password</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="section-card shadow-sm p-4 text-center security-option-card border-premium-orange" 
+                             style="background:#fff; border-radius:12px; cursor:pointer; height: 100%; transition: all 0.3s;" 
+                             onclick="toggleSecurityView('forgot')">
+                            <i class="bi bi-shield-exclamation text-orange mb-2 d-block" style="font-size: 2rem;"></i>
+                            <h6 class="fw-bold mb-2">Forgot Password</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Recover via email OTP</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHANGE PASSWORD FORM -->
+            <div id="changePasswordView" style="display:none;">
+                <div class="section-card shadow-sm p-4 border-premium-orange" style="background:#fff; border-radius:12px;">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                        <button type="button" class="btn btn-sm btn-light me-2 rounded-pill px-3" style="font-size: 0.75rem;" onclick="toggleSecurityView('options')">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                        <span class="fw-bold text-orange small text-uppercase" style="letter-spacing: 0.5px;">Change Password</span>
+                    </div>
+                    
+                    <div style="max-width: 450px; margin: 0 auto;">
+                        <form action="/User/Home/UpdatePassword" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="role" value="Student">
+                            <input type="hidden" name="source" value="change">
+                            
+                            <div class="mb-3">
+                                <label class="form-label small fw-medium">Current Password</label>
+                                <input type="password" name="currentPassword" class="form-control form-control-sm" placeholder="Enter current password" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label small fw-medium">New Password</label>
+                                <input type="password" name="newPassword" class="form-control form-control-sm" placeholder="Minimum 6 characters" required minlength="6">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label small fw-medium">Confirm New Password</label>
+                                <input type="password" name="confirmPassword" class="form-control form-control-sm" placeholder="Repeat new password" required>
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-orange-save btn-sm w-100 py-2 shadow-sm rounded-pill">
+                                    <i class="bi bi-check-circle me-2"></i>Update Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORGOT PASSWORD FORM -->
+            <div id="forgotPasswordView" style="display:none;">
+                <div class="section-card shadow-sm p-4 border-premium-orange" style="background:#fff; border-radius:12px;">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                        <button type="button" class="btn btn-sm btn-light me-2 rounded-pill px-3" style="font-size: 0.75rem;" onclick="toggleSecurityView('options')">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                        <span class="fw-bold text-orange small text-uppercase" style="letter-spacing: 0.5px;">Reset Your Password</span>
+                    </div>
+
+                    @await Html.PartialAsync("_ForgotPasswordPartial", Model.Email)
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .border-premium-orange {
+        border: 1px solid #ffe0b2 !important;
+    }
+
+    .form-section-title {
+        font-size: .85rem;
+        font-weight: 700;
+        letter-spacing: .6px;
+        color: var(--orange);
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #fff3e0;
+    }
+
+    .btn-section {
+        border: 1px solid #fff3e0;
+        background: #fff;
+        color: #444;
+        text-align: left;
+        font-weight: 500;
+        transition: all 0.2s;
+        border-radius: 10px;
+    }
+
+    .btn-section:hover {
+        background: var(--orange-soft);
+        color: var(--orange);
+        border-color: var(--orange);
+    }
+
+    .btn-sidebar-nav.active {
+        background-color: var(--orange) !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: 0 4px 10px rgba(255, 122, 0, 0.2);
+    }
+
+    .btn-orange-save {
+        background-color: var(--orange);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-orange-save:hover {
+        background-color: var(--orange-dark);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.25);
+    }
+
+    .stat-box {
+        background: #fffaf0;
+        border-radius: 12px;
+        padding: 12px 0;
+        border: 1px solid #ffe0b2;
+    }
+
+    .stat-number {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--orange);
+    }
+
+    .stat-label {
+        font-size: 11px;
+        color: #666;
+        font-weight: 500;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navBtns = document.querySelectorAll('.btn-sidebar-nav');
+        const sections = document.querySelectorAll('.profile-content-section');
+
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-section');
+                
+                // Update nav buttons
+                navBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update sections
+                sections.forEach(s => s.classList.remove('active'));
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // Tab and View persistence from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'security') {
+            const secBtn = document.querySelector('[data-section="passwordSection"]');
+            if (secBtn) {
+                secBtn.click();
+                const view = urlParams.get('view');
+                if (view) toggleSecurityView(view);
+            }
+        }
+    });
+
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+                document.getElementById('photoSaveContainer').style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function toggleSecurityView(view) {
+        // hide all sub-views
+        const sections = ['securityOptionsView', 'changePasswordView', 'forgotPasswordView'];
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        
+        // show target
+        let targetId = 'securityOptionsView';
+        if (view === 'change') targetId = 'changePasswordView';
+        else if (view === 'forgot') targetId = 'forgotPasswordView';
+        
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.style.display = 'block';
+            $(target).hide().fadeIn(300);
+        }
+    }
+</script>

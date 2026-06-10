@@ -1,0 +1,193 @@
+@model SkillForge.Models.CoursePageVM
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Courses";
+}
+
+<link rel="stylesheet" href="~/css/courses.css" />
+
+<main class="py-0">
+
+    @* ── hero ── *@
+    <div class="course-hero">
+        <div class="hero-inner">
+            <h1 class="hero-title">
+                Upgrade Your Skills with <span class="text-highlight">Industry-Ready</span> Courses
+            </h1>
+            <p class="hero-subtitle">Learn faster. Build real projects. Get job-ready.</p>
+
+            @* inline search bar (Polished) *@
+            <div class="mt-4 d-flex justify-content-center">
+                <form asp-area="Pubic" asp-controller="Home" asp-action="Search" method="get" class="d-flex gap-2" style="max-width: 480px; width: 100%;">
+                    <div class="position-relative flex-grow-1">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted small"></i>
+                        <input type="text" name="q" class="form-control ps-5 py-2 border-1 shadow-sm" placeholder="Search for anything..." style="border-radius: 10px; font-size: 0.9rem;">
+                    </div>
+                    <button type="submit" class="btn-orange px-4 py-2 fw-bold" style="border-radius: 10px; font-size: 0.9rem;">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* ── DATA PREPARATION ── *@
+    @{
+        var allCourses = Model.CategorySections
+            .Where(c => c.Courses != null)
+            .SelectMany(c => c.Courses)
+            .Concat(Model.PopularCourses ?? new List<CourseCardVM>())
+            .GroupBy(c => c.courseId)
+            .Select(g => g.First())
+            .ToList();
+
+        var recentlyAdded = allCourses
+            .OrderByDescending(c => c.courseId)
+            .Take(8)
+            .ToList();
+
+        var validCategories = Model.CategorySections
+            .Where(c => c.Courses != null && c.Courses.Count >= 3)
+            .OrderByDescending(c => c.Courses.Count)
+            .ToList();
+
+        var mixedCourses = Model.CategorySections
+            .Where(c => c.Courses != null && c.Courses.Count > 0 && c.Courses.Count < 3)
+            .SelectMany(c => c.Courses)
+            .GroupBy(c => c.courseId)
+            .Select(g => g.First())
+            .ToList();
+            
+        var fixedCategories = new List<string>
+        {
+            "Software Development", "Data Science",
+            "AI / ML", "DevOps & Cloud", "Cybersecurity"
+        };
+
+        var dynamicCategories = Model.CategorySections
+            .Where(c => c.Courses != null && c.Courses.Any())
+            .Select(c => c.CategoryName)
+            .ToList();
+    }
+
+    @* ── category pills ── *@
+    <div class="container-fluid px-5">
+        <div class="cat-scroll justify-content-center border-0 mb-4">
+            @foreach (var cat in fixedCategories)
+            {
+                <button class="cat-pill" onclick="moveCategory('@cat', this)">@cat</button>
+            }
+            @foreach (var cat in dynamicCategories)
+            {
+                if (!fixedCategories.Contains(cat))
+                {
+                    <button class="cat-pill" onclick="moveCategory('@cat', this)">@cat</button>
+                }
+            }
+            <button class="cat-pill" onclick="moveCategory('explore-more', this)">Others</button>
+        </div>
+    </div>
+
+
+    <div class="container-fluid px-5">
+        
+        @* ── ROW 1: Recently Added ── *@
+        @if (recentlyAdded.Any())
+        {
+            <div class="category-section border-0 px-0 shadow-none bg-transparent">
+                <div class="sec-head px-0">
+                    <div class="cat-left">
+                        <span class="cat-bar"></span>
+                        <h2 class="fw-bold">Recently Added</h2>
+                    </div>
+                </div>
+
+                <div class="position-relative course-section-inner">
+                    <span class="arr left" onclick="scrollRow(this, -1)">‹</span>
+                    <div class="course-row px-0">
+                        @foreach (var course in recentlyAdded)
+                        {
+                            <partial name="_CourseCardPartial" model="course" />
+                        }
+                    </div>
+                    <span class="arr right" onclick="scrollRow(this, 1)">›</span>
+                </div>
+            </div>
+        }
+
+
+        @* ── LARGE CATEGORIES (>= 3 courses) ── *@
+        @foreach (var category in validCategories)
+        {
+            <div class="category-section border-0 px-0 shadow-none bg-transparent" data-cat="@category.CategoryName">
+                <div class="sec-head px-0">
+                    <div class="cat-left">
+                        <span class="cat-bar"></span>
+                        <h2 class="fw-bold">@category.CategoryName</h2>
+                    </div>
+                </div>
+
+                <div class="position-relative course-section-inner">
+                    <span class="arr left" onclick="scrollRow(this, -1)">‹</span>
+                    <div class="course-row px-0">
+                        @foreach (var course in category.Courses)
+                        {
+                            <partial name="_CourseCardPartial" model="course" />
+                        }
+                    </div>
+                    <span class="arr right" onclick="scrollRow(this, 1)">›</span>
+                </div>
+            </div>
+        }
+
+        @* ── MIXED SECTION: Explore More (< 3 courses) ── *@
+        @if (mixedCourses.Any())
+        {
+            <div class="category-section border-0 shadow-none bg-transparent mt-5" data-cat="explore-more">
+                <div class="sec-head">
+                    <div class="cat-left">
+                        <span class="cat-bar" style="background: var(--orange)"></span>
+                        <h2 class="fw-bold">Explore More Courses</h2>
+                    </div>
+                </div>
+
+                <div class="course-section-inner">
+                    <div class="course-grid">
+                        @foreach (var course in mixedCourses)
+                        {
+                            <div class="course-grid-item">
+                                <partial name="_CourseCardPartial" model="course" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+</main>
+
+@* Reuse scripts from user courses but adapt for public layout if needed *@
+<script>
+    // ── horizontal scroll ──
+    function scrollRow(el, dir) {
+        const container = el.closest('.course-section-inner');
+        const row = container.querySelector('.course-row');
+        const card = row.querySelector('.c-card');
+        if (!card) return;
+        const scrollAmount = (card.offsetWidth + 24) * 3;
+        row.scrollBy({ left: scrollAmount * dir, behavior: 'smooth' });
+    }
+
+    // ── move clicked category section to top ──
+    function moveCategory(catName, btn) {
+        document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+
+        const target = document.querySelector(`.category-section[data-cat="${catName}"]`);
+        if (target) {
+            const offset = 100;
+            const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        }
+    }
+</script>

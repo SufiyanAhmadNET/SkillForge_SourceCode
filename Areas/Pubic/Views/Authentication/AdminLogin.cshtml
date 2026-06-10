@@ -1,0 +1,76 @@
+﻿@{
+    Layout = "~/Areas/Pubic/Views/Shared/_AuthLayout.cshtml";
+    ViewData["Title"] = "Login";
+    ViewData["RoleClass"] = "role-admin";
+}
+
+
+@* ================= Login Section ================= *@
+
+<section class="d-flex align-items-center justify-content-center py-4 bg-light flex-grow-1">
+    <div class="card auth-card shadow-sm">
+
+        <form method="post" id="adminLoginForm" onsubmit="return handleAuthSubmit('adminLoginForm', 'Login')" asp-area="Pubic" asp-controller="Authentication" asp-action="AdminLogin">
+            @Html.AntiForgeryToken()
+
+            <!-- role badge — green for admin -->
+            <div class="text-center mb-1">
+                <span class="role-badge">
+                    <i class="bi bi-shield-lock-fill"></i> ADMIN PORTAL
+                </span>
+            </div>
+
+            <h2 class="text-center fw-bold mb-1">Admin Login</h2>
+            <p class="text-center text-muted small mb-3">Authorized platform management access only</p>
+
+            <!-- Email -->
+            <div class="mb-2">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-control" name="email"
+                       placeholder="admin@skillforge.com" autocomplete="email" value="@ViewBag.Email" required>
+            </div>
+
+            <!-- Password + toggle -->
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" name="password"
+                           id="adminPass" placeholder="Enter password" autocomplete="current-password" required>
+                    <button class="btn btn-outline-secondary pass-toggle" style="border: 1px solid #e0e0e0; border-left: none; border-radius: 0 10px 10px 0;" type="button"
+                            onclick="togglePass('adminPass','adminEye')">
+                        <i class="bi bi-eye" id="adminEye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- submit -->
+            <button type="submit" class="btn-auth mb-3">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span class="btn-text">Secure Admin Login</span>
+            </button>
+
+            <!-- security note -->
+            <div class="text-center mb-3">
+                <p class="text-muted small mb-0" style="font-size: 0.7rem;">
+                    <i class="bi bi-info-circle me-1"></i> Admin accounts are system provisioned.
+                </p>
+            </div>
+
+            <!-- role switcher -->
+            <div class="role-switcher">
+                <div class="role-switcher-label">LOGIN AS</div>
+                <div class="role-switcher-links">
+                    <a asp-area="User" asp-controller="Auth" asp-action="StudentLogin" class="role-link">
+                        <i class="bi bi-mortarboard"></i> Student
+                    </a>
+                    <a asp-area="Instructor" asp-controller="Auth" asp-action="InstructorLogin" class="role-link">
+                        <i class="bi bi-person-video3"></i> Instructor
+                    </a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</section>
+
+

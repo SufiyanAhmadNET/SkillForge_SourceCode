@@ -1,0 +1,232 @@
+@using SkillForge.Services.Courses.Models
+@model IEnumerable<SkillForge.Models.MyCourseVM>? 
+@{
+    ViewData["Title"] = "My Courses";
+    Layout = "~/Areas/Instructor/Views/Shared/InstructorLayout.cshtml";
+}
+
+<main class="p-4 flex-grow-1 inst-bg">
+    @* header *@
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold mb-0">My Courses</h5>
+            <small class="text-muted">Manage and track your courses</small>
+        </div>
+        <a asp-action="AddCourse" class="btn btn-purple fw-bold px-4 rounded-pill shadow-sm">
+            Add Course
+        </a>
+    </div>
+    @* search + filter bar *@
+    <form method="get" asp-action="MyCourses" class="card border-0 inst-card p-2 px-3 mb-4 shadow-sm">
+        <div class="row g-2 align-items-center">
+            <div class="col-md d-flex gap-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control border-start-0 bg-light"
+                           placeholder="Search by title..." value="@ViewBag.SearchTerm">
+                </div>
+                <button type="submit" class="btn btn-purple btn-sm px-4 fw-medium">Search</button>
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    @if (ViewBag.CategoryFilter == "Software Development") { <option value="Software Development" selected>Software Development</option> } else { <option value="Software Development">Software Development</option> }
+                    @if (ViewBag.CategoryFilter == "Data Science") { <option value="Data Science" selected>Data Science</option> } else { <option value="Data Science">Data Science</option> }
+                    @if (ViewBag.CategoryFilter == "AI / Machine Learning") { <option value="AI / Machine Learning" selected>AI / Machine Learning</option> } else { <option value="AI / Machine Learning">AI / Machine Learning</option> }
+                    @if (ViewBag.CategoryFilter == "DevOps & Cloud") { <option value="DevOps & Cloud" selected>DevOps & Cloud</option> } else { <option value="DevOps & Cloud">DevOps & Cloud</option> }
+                    @if (ViewBag.CategoryFilter == "Cybersecurity") { <option value="Cybersecurity" selected>Cybersecurity</option> } else { <option value="Cybersecurity">Cybersecurity</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Status</option>
+                    @if (ViewBag.StatusFilter == "Draft") { <option value="Draft" selected>Draft</option> } else { <option value="Draft">Draft</option> }
+                    @if (ViewBag.StatusFilter == "PendingReview") { <option value="PendingReview" selected>Pending Review</option> } else { <option value="PendingReview">Pending Review</option> }
+                    @if (ViewBag.StatusFilter == "Published") { <option value="Published" selected>Published</option> } else { <option value="Published">Published</option> }
+                    @if (ViewBag.StatusFilter == "Rejected") { <option value="Rejected" selected>Rejected</option> } else { <option value="Rejected">Rejected</option> }
+                </select>
+            </div>
+        </div>
+    </form>
+
+    
+    @* course grid *@
+    @if (!(Model?.Any() ?? false))
+    {
+        @* empty state *@
+        <div class="text-center py-5">
+            <i class="bi bi-journal-x text-muted" style="font-size:48px;"></i>
+            <h6 class="text-muted mt-3 mb-1">No courses yet</h6>
+            <p class="text-muted small mb-3">Create your first course and start teaching</p>
+            <a asp-action="AddCourse" class="btn btn-purple px-4 fw-semibold rounded-pill shadow-sm">
+                Create Course
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4" id="courseGrid">
+            @* Course List *@
+           
+            @foreach (var course in Model)
+            {
+
+                <div class="col-xl-3 col-lg-4 col-md-6 course-item" 
+                     data-title="@course.Title.ToLower()" 
+                     data-category="@course.CategoryName" 
+                     data-status="@course.Status">
+                    <div class="card border-0 shadow-sm h-100 position-relative">
+
+                        <!-- Thumbnail -->
+                        <div class="position-relative">
+                            <img src="@(string.IsNullOrEmpty(course.Thumbnail_Url)
+                                             ? "/uploads/thumbnails/Default_Thumbnail.avif"
+                                             : course.Thumbnail_Url)"
+                         class="w-100 rounded-top"
+                         style="height:140px; object-fit:cover;">
+
+                            <!-- Status Badge -->
+                            @{
+                                var badgeClass = course.Status == CourseStatus.Approved || course.Status == CourseStatus.Published ? "bg-success" : 
+                                                 course.Status == CourseStatus.PendingReview ? "bg-warning text-dark" : 
+                                                 course.Status == CourseStatus.Rejected ? "bg-danger" : "bg-secondary";
+                            }
+                            <span class="badge @badgeClass position-absolute top-0 start-0 m-2"
+                                  style="font-size:10px;">
+                               @course.Status
+                            </span>
+
+                            <!-- Action Menu -->
+                            <div class="dropdown position-absolute top-0 end-0 m-2">
+                                <button class="btn btn-light btn-sm rounded-circle shadow-sm"
+                                        style="width:28px;height:28px;padding:0;"
+                                        data-bs-toggle="dropdown">
+                                    ⋮
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="font-size:13px;">
+                                    <li><a class="dropdown-item" asp-area="Instructor" asp-controller="Home" asp-action="EditCourse" asp-route-id="@course.CourseId">
+                                        Edit
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-area="Instructor" asp-controller="Home" asp-action="CourseDetails" asp-route-id="@course.CourseId">
+                                        View Details
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger delete-course" href="javascript:void(0)" data-course-id="@course.CourseId">
+                                        Delete
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="card-body p-2 d-flex flex-column">
+
+                            <!-- Title -->
+                            <h6 class="fw-semibold mb-1 text-truncate"
+                                style="font-size:14px;">
+                                @course.Title
+                            </h6>
+
+                            <!-- Category -->
+                            <small class="text-muted mb-1">
+                                @course.CategoryName
+                            </small>
+
+                            <!-- Bottom -->
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+
+                                <!-- Price -->
+                                <span class="fw-bold" style="font-size:13px; color:var(--purple);">
+                                   ₹@course.Total_Price
+                                </span>
+
+                                <!-- Manage -->
+                                <a asp-action="CourseDetails" asp-route-id="@course.CourseId" class="btn btn-sm btn-outline-secondary rounded-pill"
+                                   style="font-size:11px; padding:2px 10px;">
+                                    Manage
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* DELETED COURSES SECTION *@
+    @{
+        var deletedCourses = ViewBag.DeletedCourses as IEnumerable<SkillForge.Models.MyCourseVM>;
+    }
+    @if (deletedCourses != null && deletedCourses.Any())
+    {
+        <div class="mt-5 pt-4 border-top">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h6 class="fw-bold mb-0 text-muted"><i class="bi bi-trash3 me-2"></i>Deleted Courses</h6>
+                    <small class="text-muted">These courses are no longer visible to students but their records are accessible.</small>
+                </div>
+                <button class="btn btn-sm btn-light border" type="button" data-bs-toggle="collapse" data-bs-target="#deletedCoursesCollapse">
+                    View Deleted Courses
+                </button>
+            </div>
+
+            <div class="collapse" id="deletedCoursesCollapse">
+                <div class="row g-4">
+                    @foreach (var course in deletedCourses)
+                    {
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="card border-0 shadow-sm h-100 position-relative opacity-75">
+                                <!-- Thumbnail -->
+                                <div class="position-relative grayscale">
+                                    <img src="@(string.IsNullOrEmpty(course.Thumbnail_Url) ? "/uploads/thumbnails/Default_Thumbnail.avif" : course.Thumbnail_Url)"
+                                         class="w-100 rounded-top" style="height:140px; object-fit:cover; filter: grayscale(100%);">
+                                    <span class="badge bg-secondary position-absolute top-0 start-0 m-2">Deleted</span>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="card-body p-2 d-flex flex-column bg-light">
+                                    <h6 class="fw-semibold mb-1 text-truncate text-muted" style="font-size:14px;">@course.Title</h6>
+                                    <small class="text-muted mb-2">@course.CategoryName</small>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <span class="fw-bold text-muted small">Archived Record</span>
+                                        <a asp-action="CourseDetails" asp-route-id="@course.CourseId" class="btn btn-sm btn-white border rounded-pill" style="font-size:11px; padding:2px 10px;">
+                                            View Reports 
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</main>
+
+
+@* client-side delete confirmation *@
+<script>
+    // Delete confirmation
+    document.querySelectorAll('.delete-course').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const courseId = this.dataset.courseId;
+
+            SkillForge.confirm({
+                message: "Are you sure you want to delete this course? It will be moved to your deleted section.",
+                confirmText: "Delete Course",
+                onConfirm: function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/Instructor/Home/DeleteCourse?id=${courseId}`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>

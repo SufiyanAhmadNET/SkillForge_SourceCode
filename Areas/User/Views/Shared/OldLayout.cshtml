@@ -1,0 +1,141 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders & Billing – SkillForge</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/css/index.css" rel="stylesheet">
+    <link href="/css/User.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <!-- TOPBAR -->
+    <header class="student-topbar">
+        <button class="sidebar-toggle" onclick="openSidebar()"><i class="bi bi-list"></i></button>
+        <a class="topbar-brand" href="/"><i class="bi bi-mortarboard-fill"></i> SkillForge</a>
+        <div class="topbar-search"><i class="bi bi-search"></i><input type="text" placeholder="Search courses…"></div>
+        <div class="ms-auto d-flex align-items-center gap-2">
+            <button class="notif-btn"><i class="bi bi-bell"></i><span class="notif-dot"></span></button>
+            <div class="dropdown">
+                <button class="avatar-btn" data-bs-toggle="dropdown">
+                    <img class="avatar-img"
+                         src="@(Model?.PhotoPath + "?t=" + DateTime.Now.Ticks)"
+                         alt="Profile Photo" />
+
+                    <span class="fw-medium small d-none d-md-inline">@ViewBag.FirstName</span>
+                    <i class="bi bi-chevron-down d-none d-md-inline" style="font-size:.65rem;color:#aaa"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end profile-dropdown">
+                    <li>
+                        <div class="profile-dropdown-header">
+                            <img class="profile-dropdown-avatar" src="~/images/DefaultProfilePhoto.jfif" alt=""><div>
+                                <div class="profile-dropdown-name">@(ViewBag.FirstName + "  " + ViewBag.LastName)</div>
+                                <div class="profile-dropdown-email">@ViewBag.Email</div>
+                                <div class="profile-dropdown-courses"><i class="bi bi-play-btn me-1"></i>4 courses enrolled</div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item @(ViewBag.IsVerified == "True" ? "" : "disabled-link")"
+                           asp-area="User" asp-controller="Home" asp-action="Profile"><i class="bi bi-person"></i> My Profile</a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" asp-area="User" asp-controller="Home" asp-action="EnrolledCourses">
+                            <i class="bi bi-play-btn"></i> My Courses
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" asp-area="User" asp-controller="Home" asp-action="Certificates">
+                            <i class="bi bi-award"></i> Certificates
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" asp-area="User" asp-controller="Home" asp-action="Orders">
+                            <i class="bi bi-receipt"></i> Orders & Billing
+                        </a>
+                    </li>
+
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" asp-area="User" asp-controller="Auth" asp-action="Logout">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR — Orders active -->
+    <aside class="student-sidebar" id="studentSidebar">
+        <button class="sidebar-close" onclick="closeSidebar()"><i class="bi bi-x-lg"></i></button>
+        <div class="side-label">Main</div>
+        <a class="side-item" asp-area="User" asp-controller="Home" asp-action="Dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+        <a class="side-item" asp-area="User" asp-controller="Home" asp-action="EnrolledCourses"><i class="bi bi-play-btn"></i> My Courses</a>
+        <a class="side-item" asp-area="User" asp-controller="Home" asp-action="Courses">
+            <i class="bi bi-compass"></i> Explore
+        </a>
+
+        <a class="side-item" asp-area="User" asp-controller="Home" asp-action="Wishlist"><i class="bi bi-heart"></i> Wishlist</a>
+        <a class="side-item" asp-area="User" asp-controller="Home" asp-action="Certificates"><i class="bi bi-award"></i> Certificates</a>
+        <div class="side-label">Account</div>
+        <a class="side-item" asp-area="User" asp-controller="Home" asp-action="Profile"><i class="bi bi-person"></i> My Profile</a>
+        <a class="side-item active" asp-area="User" asp-controller="Home" asp-action="Orders"><i class="bi bi-receipt"></i> Orders & Billing</a>
+        <div class="side-label">Help</div>
+        <a class="side-item" href="#"><i class="bi bi-question-circle"></i> Help Center</a>
+        <a class="side-item" href="#"><i class="bi bi-chat-dots"></i> Community</a>
+        <div class="sidebar-bottom">
+            <a class="side-item" asp-area="User" asp-controller="Auth" asp-action="Logout"
+               style="color:#dc3545 !important"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="student-main">
+
+        <partial name="_Alert_Message_Partial" />
+
+        <link href="~/css/alert.css" rel="stylesheet" />
+
+        <script src="~/js/Alert.js"></script>
+
+        @RenderBody()
+    </main>
+
+    <script>
+        // open sidebar
+        function openSidebar() {
+          document.getElementById('studentSidebar').classList.add('open');
+          document.getElementById('sidebarOverlay').classList.add('show');
+          document.body.style.overflow = 'hidden'; // no scroll behind
+        }
+
+        // close sidebar
+        function closeSidebar() {
+          document.getElementById('studentSidebar').classList.remove('open');
+          document.getElementById('sidebarOverlay').classList.remove('show');
+          document.body.style.overflow = '';
+        }
+
+        // ESC key also closes
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape') closeSidebar();
+        });
+    </script>
+</body>
+</html>

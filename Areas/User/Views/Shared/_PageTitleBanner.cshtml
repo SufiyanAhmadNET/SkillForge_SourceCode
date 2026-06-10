@@ -1,0 +1,52 @@
+<style>
+/* ─── PAGE TITLE BANNER ─── */
+.sf-page-title-banner {
+    background: transparent;
+    width: 100%;
+    margin-top: -16px; /* Pull closer to navbar */
+    padding-bottom: 24px;
+}
+
+.sf-page-title-content h1 {
+    color: #1e293b;
+    font-family: 'Inter', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.sf-page-subtitle {
+    margin-top: 6px;
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+/* ─── Page Title Banner Scaling ─── */
+media (max-width: 768px) {
+    .sf-page-title-banner {
+        margin-top: -8px;
+        padding-bottom: 16px;
+    }
+    .sf-page-title-content h1 {
+        font-size: 26px !important;
+    }
+    .sf-page-subtitle {
+        font-size: 14px;
+        margin-top: 4px;
+    }
+}
+</style>
+
+<!-- ── PAGE TITLE BANNER ── -->
+<div class="sf-page-title-banner">
+    <div class="sf-page-title-content">
+        <h1>@ViewData["Title"]</h1>
+        @if (ViewData["Subtitle"] != null)
+        {
+            <div class="sf-page-subtitle">@ViewData["Subtitle"]</div>
+        }
+    </div>
+</div>
+

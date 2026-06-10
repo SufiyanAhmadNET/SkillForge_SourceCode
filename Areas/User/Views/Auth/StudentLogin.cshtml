@@ -1,0 +1,116 @@
+@{
+    Layout = "~/Areas/Pubic/Views/Shared/_AuthLayout.cshtml";
+    ViewData["Title"] = "Login";
+    ViewData["RoleClass"] = "role-student";
+}
+
+@* ================= Login Section ================= *@
+
+<section class="d-flex align-items-center justify-content-center py-4 bg-light flex-grow-1">
+
+    <div class="card auth-card shadow-sm">
+        <form method="post" id="loginForm" onsubmit="return handleAuthSubmit('loginForm', 'Login')">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="role" value="Student" />
+            
+            <!-- Title -->
+            <div class="text-center mb-3">
+                <h2 class="fw-bold mb-1">Welcome Back</h2>
+                <p class="text-muted small">Pick up where you left off and keep growing every day.</p>
+            </div>
+
+            @* otp trigger *@
+            @if (TempData["VerifyEmail"] != null)
+            {
+                <script>
+                    window.addEventListener("load", function () {
+                        openOtpModal("@TempData["VerifyEmail"]");
+                    });
+                </script>
+            }
+
+            <!-- Email -->
+            <div class="mb-2">
+                <label class="form-label">Email address</label>
+                <input type="email" class="form-control" name="email" placeholder="you@example.com" value="@ViewBag.Email" required>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <label class="form-label">Password</label>
+                    <a asp-action="ForgotPassword" class="text-decoration-none small fw-bold" style="color:var(--orange); font-size: 0.75rem;">Forgot?</a>
+                </div>
+                <div class="input-group">
+                    <input type="password" class="form-control" name="password" id="studLoginPass" 
+                           placeholder="Enter your password" required>
+                    <button class="btn btn-outline-secondary pass-toggle" 
+                            style="border: 1px solid #dee2e6; border-left: none; border-radius: 0 8px 8px 0;" 
+                            type="button" onclick="togglePass('studLoginPass','studLoginEye')">
+                        <i class="bi bi-eye" id="studLoginEye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn-auth mb-2">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span class="btn-text">Login</span>
+            </button>
+
+
+            <!-- Divider -->
+            <div class="auth-divider">
+                <hr>
+                <span>OR</span>
+                <hr>
+            </div>
+
+            <!-- Google button -->
+            <div class="google-auth-container text-center">
+                <div id="g_id_onload"
+                     data-client_id="@Configuration["GoogleAuth:ClientId"]"
+                     data-login_uri="/User/Auth/GoogleLogin"
+                     data-auto_prompt="false">
+                </div>
+
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-width="100%">
+                </div>
+            </div>
+
+            <!-- No account yet -->
+            <p class="text-center text-muted small mt-3 mb-0">
+                New here?
+                <a asp-area="User" asp-controller="Auth" asp-action="StudentRegistration"
+                   class="text-decoration-none fw-bold ms-1" style="color:var(--orange);">
+                    Create account
+                </a>
+            </p>
+
+            <!-- Login as different role -->
+            <div class="role-switcher">
+                <p class="role-switcher-label">LOGIN AS</p>
+                <div class="role-switcher-links">
+                    <a asp-area="Instructor" asp-controller="Auth" asp-action="InstructorLogin" class="role-link">
+                        <i class="bi bi-person-video3"></i> Instructor
+                    </a>
+                </div>
+            </div>
+
+        </form>
+        @await Html.PartialAsync("_OtpModal")
+    </div>
+</section>
+
+@*  otp trigger js *@
+<script>
+    // Google login logic handled by data-login_uri
+</script>

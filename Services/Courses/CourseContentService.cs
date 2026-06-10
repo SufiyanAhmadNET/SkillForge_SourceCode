@@ -46,15 +46,7 @@ namespace SkillForge.Services.Courses
             return _context.SaveChanges() > 0;
         }
 
-        public bool DeleteModule(int moduleId)
-        {
-            var module = _context.CourseModules.Find(moduleId);
-            if (module == null) return false;
-            int courseId = module.CourseId;
-            _context.CourseModules.Remove(module);
-            ResetCourseStatus(courseId);
-            return _context.SaveChanges() > 0;
-        }
+    
 
         public bool DeleteLesson(int lessonId)
         {

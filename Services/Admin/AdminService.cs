@@ -166,25 +166,7 @@ namespace SkillForge.Services.Admin
             var courses = _context.Courses.ToList();
             var enrollments = _context.Enrollments.ToList();
 
-            return instructors.Select(i => {
-                var app = applications.Where(a => a.InstructorId == i.Id).OrderByDescending(a => a.CreatedAt).FirstOrDefault();
-                var activeInstructorCoursesCount = courses.Count(c => c.instructor_id == i.Id && (c.Status == CourseStatus.Approved || c.Status == CourseStatus.Published));
-                var instructorCourses = courses.Where(c => c.instructor_id == i.Id).Select(c => c.Id).ToList();
-                var instructorStudents = enrollments.Count(e => instructorCourses.Contains(e.CourseId));
-
-                return new InstructorListVM
-                {
-                    Id = i.Id,
-                    Name = i.Profile != null ? (i.Profile.FirstName + " " + i.Profile.LastName).Trim() : i.Email.Split('@')[0],
-                    Email = i.Email,
-                    TotalCourses = activeInstructorCoursesCount,
-                    TotalStudents = instructorStudents,
-                    JoinedDate = i.CreatedAt,
-                    Status = app?.Status.ToString() ?? "NotApplied"
-                };
-            }).ToList();
-        }
-
+          
         // Get all students for admin listing
         public List<StudentListVM> GetAllStudents()
         {
